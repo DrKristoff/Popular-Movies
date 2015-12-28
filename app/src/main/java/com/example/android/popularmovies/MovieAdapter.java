@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
@@ -43,9 +42,9 @@ public class MovieAdapter extends ArrayAdapter<Movie> {
         final String MOVIE_BASE_URL = " http://image.tmdb.org/t/p/";
         final String SIZE = "w185";
         final String POSTER_PATH = "poster_path";
-        final String VALUE = movie.getMovieLink();
+        final String VALUE = movie.getPosterPath();
         Picasso.with(mContext).setLoggingEnabled(true);
-        Picasso.with(mContext).load(movie.getMovieLink()).error(R.drawable.ic_info_black_24dp).into(iconView);
+        Picasso.with(mContext).load(movie.getPosterPath()).error(R.drawable.ic_info_black_24dp).into(iconView);
         return convertView;
     }
 }

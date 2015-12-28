@@ -2,6 +2,7 @@ package com.example.android.popularmovies;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -10,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -75,6 +77,21 @@ public class PostersFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onResume() {
+        updateMovies();  //update posters after settings preference changed
+        super.onResume();
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        return super.onOptionsItemSelected(item);
+    }
+
     private void updateMovies(){
         FetchMoviesTask moviesTask = new FetchMoviesTask();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -86,16 +103,6 @@ public class PostersFragment extends Fragment {
 
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
-        /* The date/time conversion code is going to be moved outside the asynctask later,
-         * so for convenience we're breaking it out into its own method now.
-         */
-        private String getReadableDateString(long time){
-            // Because the API returns a unix timestamp (measured in seconds),
-            // it must be converted to milliseconds in order to be converted to valid date.
-            SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");
-            return shortenedDateFormat.format(time);
-        }
-
         private ArrayList<Movie> getMovieDataFromJSONString(String movieJSONString)
                 throws JSONException {
 
@@ -106,6 +113,7 @@ public class PostersFragment extends Fragment {
             final String MOVIE_TITLE = "title";
             final String MOVIE_RELEASE_DATE = "release_date";
             final String MOVIE_RATING = "vote_average";
+            final String MOVIE_ID = "id";
             //final String MOVIE_LENGTH = "??"; get from different query?
 
             ArrayList<Movie> resultsList = new ArrayList<>();
@@ -115,48 +123,9 @@ public class PostersFragment extends Fragment {
 
             for(int i =0; i < moviesArray.length(); i++){
                 JSONObject movie = moviesArray.getJSONObject(i);
-
-                String posterPath = "http://image.tmdb.org/t/p/w185/" + movie.getString(MOVIE_POSTER);
-                String movieTitle = movie.getString(MOVIE_TITLE);
-
-                resultsList.add(i,new Movie(movieTitle,posterPath));
-
+                resultsList.add(i, new Movie(movie));
             }
 
-/*            for(int i = 0; i < weatherArray.length(); i++) {
-                // For now, using the format "Day, description, hi/low"
-                String day;
-                String description;
-                String highAndLow;
-
-                // Get the JSON object representing the day
-                JSONObject dayForecast = weatherArray.getJSONObject(i);
-
-                // The date/time is returned as a long.  We need to convert that
-                // into something human-readable, since most people won't read "1400356800" as
-                // "this saturday".
-                long dateTime;
-                // Cheating to convert this to UTC time, which is what we want anyhow
-                dateTime = dayTime.setJulianDay(julianStartDay+i);
-                day = getReadableDateString(dateTime);
-
-                // description is in a child array called "weather", which is 1 element long.
-                JSONObject weatherObject = dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
-                description = weatherObject.getString(OWM_DESCRIPTION);
-
-                // Temperatures are in a child object called "temp".  Try not to name variables
-                // "temp" when working with temperature.  It confuses everybody.
-                JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
-                double high = temperatureObject.getDouble(OWM_MAX);
-                double low = temperatureObject.getDouble(OWM_MIN);
-
-                highAndLow = formatHighLows(high, low);
-                resultStrs[i] = day + " - " + description + " - " + highAndLow;
-            }*/
-
-            //for (String s : resultStrs) {
-            //    Log.v(LOG_TAG, "Forecast entry: " + s);
-            //}
             return resultsList;
 
         }
@@ -172,19 +141,23 @@ public class PostersFragment extends Fragment {
             String popularMoviesJsonString = null;
 
             String format = "json";
-            String units = "metric";
-            //int numDays = 7;
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_popularity));
+            sortBy = sortBy + ".desc"; //vote_average.desc
 
             try {
-                // Construct the URL for the OpenWeatherMap query
-                // Possible parameters are avaiable at OWM's forecast API page, at
-                // http://openweathermap.org/API#forecast
-                //final String FORECAST_BASE_URL =
-                //        "http://api.openweathermap.org/data/2.5/forecast/daily?";
-                final String FORECAST_BASE_URL = "http://api.themoviedb.org/3/movie/popular";
+
+                //final String FORECAST_BASE_URL = "http://api.themoviedb.org/3/movie/popular";
+                final String FORECAST_BASE_URL = "http://api.themoviedb.org/3/discover/movie";
+                //http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=
                 final String APPID_PARAM = "api_key";
+                final String SORT_BY_PARAM = "sort_by";
+                    final String MIN_VOTES_PARAM = "vote_count.gte";
 
                 Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
+                        .appendQueryParameter(SORT_BY_PARAM, sortBy)
+                        .appendQueryParameter(MIN_VOTES_PARAM, "200")
                         .appendQueryParameter(APPID_PARAM, BuildConfig.MOVIE_DATABASE_API_KEY)
                         .build();
 
