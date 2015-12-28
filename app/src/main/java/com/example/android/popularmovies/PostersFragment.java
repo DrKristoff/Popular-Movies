@@ -73,6 +73,20 @@ public class PostersFragment extends Fragment {
         mMovieAdapter = new MovieAdapter(getActivity(), new ArrayList<Movie>());
         mGridView.setAdapter(mMovieAdapter);
 
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //Toast.makeText(getActivity(), mForecastAdapter.getItem(position), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                int movieID = mMovieAdapter.getItem(position).getMovieID();
+                intent.putExtra(Intent.EXTRA_TEXT, String.valueOf(movieID));
+                startActivity(intent);
+
+
+            }
+        });
+
         updateMovies();
         return rootView;
     }

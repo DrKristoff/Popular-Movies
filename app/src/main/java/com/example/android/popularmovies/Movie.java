@@ -27,7 +27,7 @@ public class Movie {
 //    }
 
     public Movie(JSONObject movie) throws JSONException {
-        mPosterPath = "http://image.tmdb.org/t/p/w185/" + movie.getString(MOVIE_POSTER);
+        mPosterPath = "http://image.tmdb.org/t/p/w500/" + movie.getString(MOVIE_POSTER);
         mOverview = movie.getString(MOVIE_OVERVIEW);
         mMovieTitle = movie.getString(MOVIE_TITLE);
         mReleaseDate = movie.getString(MOVIE_RELEASE_DATE);
@@ -38,5 +38,9 @@ public class Movie {
 
     public String getPosterPath(){
         return mPosterPath;
+    }
+
+    public int getMovieID(){
+        return mMovieID;
     }
 }
