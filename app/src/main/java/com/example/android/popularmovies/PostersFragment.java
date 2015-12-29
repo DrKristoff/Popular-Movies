@@ -79,8 +79,9 @@ public class PostersFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //Toast.makeText(getActivity(), mForecastAdapter.getItem(position), Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
-                int movieID = mMovieAdapter.getItem(position).getMovieID();
-                intent.putExtra(Intent.EXTRA_TEXT, String.valueOf(movieID));
+                //int movieID = mMovieAdapter.getItem(position).getMovieID();
+                //intent.putExtra(Intent.EXTRA_TEXT, String.valueOf(movieID));
+                intent.putExtra("Movie_Selected",mMovieAdapter.getItem(position));
                 startActivity(intent);
 
 
@@ -120,15 +121,7 @@ public class PostersFragment extends Fragment {
         private ArrayList<Movie> getMovieDataFromJSONString(String movieJSONString)
                 throws JSONException {
 
-            // These are the names of the JSON objects that need to be extracted.
             final String MOVIE_LIST = "results";
-            final String MOVIE_POSTER = "poster_path";
-            final String MOVIE_OVERVIEW = "overview";
-            final String MOVIE_TITLE = "title";
-            final String MOVIE_RELEASE_DATE = "release_date";
-            final String MOVIE_RATING = "vote_average";
-            final String MOVIE_ID = "id";
-            //final String MOVIE_LENGTH = "??"; get from different query?
 
             ArrayList<Movie> resultsList = new ArrayList<>();
 
@@ -143,6 +136,7 @@ public class PostersFragment extends Fragment {
             return resultsList;
 
         }
+
         @Override
         protected ArrayList<Movie> doInBackground(Void... params) {
 
@@ -210,7 +204,7 @@ public class PostersFragment extends Fragment {
                 Log.v(LOG_TAG, "Movie string: " + popularMoviesJsonString);
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attemping
+                // If the code didn't successfully get the movie data, there's no point in attempting
                 // to parse it.
                 return null;
             } finally {
