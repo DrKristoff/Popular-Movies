@@ -114,10 +114,9 @@ public class DetailActivityFragment extends Fragment {
         private Movie getMovieDataFromJSONString(String movieJSONString)
                 throws JSONException {
             Movie movieDetail = new Movie(new JSONObject(movieJSONString));
-
             return movieDetail;
-
         }
+
         @Override
         protected Movie doInBackground(Void... params) {
 
@@ -128,6 +127,8 @@ public class DetailActivityFragment extends Fragment {
 
             // Will contain the raw JSON response as a string.
             String movieDetailJSONString = null;
+            String trailerDetailJSONString = null;
+            String reviewDetailJSONString = null;
 
             String format = "json";
 
@@ -135,66 +136,36 @@ public class DetailActivityFragment extends Fragment {
             //String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_popularity));
             //sortBy = sortBy + ".desc"; //vote_average.desc
 
-            try {
+            final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/movie/";
+            final String APPID_PARAM = "api_key";
 
-                final String FORECAST_BASE_URL = "http://api.themoviedb.org/3/movie/";
-                final String APPID_PARAM = "api_key";
+            Uri movieUri = Uri.parse(MOVIE_BASE_URL).buildUpon()
+                    .appendPath(String.valueOf(mMovieID))
+                    .appendQueryParameter(APPID_PARAM, BuildConfig.MOVIE_DATABASE_API_KEY)
+                    .build();
 
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .appendPath(String.valueOf(mMovieID))
-                        .appendQueryParameter(APPID_PARAM, BuildConfig.MOVIE_DATABASE_API_KEY)
-                        .build();
+            movieDetailJSONString = getRESTResponseFromURI(movieUri);
 
-                URL url = new URL(builtUri.toString());
+            movieUri = Uri.parse(MOVIE_BASE_URL).buildUpon()
+                    .appendPath(String.valueOf(mMovieID))
+                    .appendPath("videos")
+                    .appendQueryParameter(APPID_PARAM, BuildConfig.MOVIE_DATABASE_API_KEY)
+                    .build();
 
-                Log.v(LOG_TAG, "Built URI " + builtUri.toString());
+            trailerDetailJSONString = getRESTResponseFromURI(movieUri);
 
-                // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
+            movieUri = Uri.parse(MOVIE_BASE_URL).buildUpon()
+                    .appendPath(String.valueOf(mMovieID))
+                    .appendPath("reviews")
+                    .appendQueryParameter(APPID_PARAM, BuildConfig.MOVIE_DATABASE_API_KEY)
+                    .build();
 
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
+            reviewDetailJSONString = getRESTResponseFromURI(movieUri);
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line + "\n");
-                }
+            Log.v(LOG_TAG, "Movie string: " + movieDetailJSONString);
+            Log.v(LOG_TAG, "Trailer string: " + trailerDetailJSONString);
+            Log.v(LOG_TAG, "Review string: " + reviewDetailJSONString);
 
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-                movieDetailJSONString = buffer.toString();
-
-                Log.v(LOG_TAG, "Movie string: " + movieDetailJSONString);
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attemping
-                // to parse it.
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
-            }
 
             try {
                 return getMovieDataFromJSONString(movieDetailJSONString);
@@ -203,7 +174,7 @@ public class DetailActivityFragment extends Fragment {
                 e.printStackTrace();
             }
 
-            // This will only happen if there was an error getting or parsing the forecast.
+            // This will only happen if there was an error getting or parsing the movie.
             return null;
         }
 
@@ -213,6 +184,78 @@ public class DetailActivityFragment extends Fragment {
                 mRuntimeTextView.setText(String.valueOf(result.getRuntime()) + " minutes");
             }
         }
+    }
+
+    public String getRESTResponseFromURI(Uri builtUri){
+
+        // These two need to be declared outside the try/catch
+        // so that they can be closed in the finally block.
+        HttpURLConnection urlConnection = null;
+        BufferedReader reader = null;
+
+        // Will contain the raw JSON response as a string.
+        String responseString = null;
+
+        String format = "json";
+
+
+        try {
+
+            URL url = new URL(builtUri.toString());
+
+            Log.v(LOG_TAG, "Built URI " + builtUri.toString());
+
+            // Create the request to OpenWeatherMap, and open the connection
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+            urlConnection.connect();
+
+            // Read the input stream into a String
+            InputStream inputStream = urlConnection.getInputStream();
+            StringBuffer buffer = new StringBuffer();
+            if (inputStream == null) {
+                // Nothing to do.
+                return null;
+            }
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                // But it does make debugging a *lot* easier if you print out the completed
+                // buffer for debugging.
+                buffer.append(line + "\n");
+            }
+
+            if (buffer.length() == 0) {
+                // Stream was empty.  No point in parsing.
+                return null;
+            }
+            responseString = buffer.toString();
+
+            Log.v(LOG_TAG, "Movie string: " + responseString);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Error ", e);
+            // If the code didn't successfully get the weather data, there's no point in attemping
+            // to parse it.
+            return null;
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (final IOException e) {
+                    Log.e(LOG_TAG, "Error closing stream", e);
+                }
+            }
+        }
+
+
+        return responseString;
+
+
     }
 
 }
