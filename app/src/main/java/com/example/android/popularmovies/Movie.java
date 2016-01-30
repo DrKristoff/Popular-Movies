@@ -3,8 +3,11 @@ package com.example.android.popularmovies;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class Movie implements Parcelable {
     private String mPosterPath;
@@ -14,6 +17,8 @@ public class Movie implements Parcelable {
     private String mRating;
     private int mMovieID;
     private int mRuntime;
+    private ArrayList<String> mTrailers = new ArrayList<String>();
+    private ArrayList<Review> mReviews = new ArrayList<Review>();
 
     private String MOVIE_POSTER = "poster_path";
     private String MOVIE_OVERVIEW = "overview";
@@ -23,18 +28,51 @@ public class Movie implements Parcelable {
     private String MOVIE_ID = "id";
     private String MOVIE_RUNTIME = "runtime";
 
-    public Movie(JSONObject movie) throws JSONException {
-        mPosterPath = "http://image.tmdb.org/t/p/w500/" + movie.getString(MOVIE_POSTER);
-        mOverview = movie.getString(MOVIE_OVERVIEW);
-        mMovieTitle = movie.getString(MOVIE_TITLE);
-        mReleaseDate = movie.getString(MOVIE_RELEASE_DATE);
-        mRating = movie.getString(MOVIE_RATING);
-        mMovieID = Integer.parseInt(movie.getString(MOVIE_ID));
+    private String RESULTS = "results";
+    private String TRAILER_YOUTUBE_KEY = "key";
+    private String REVIEW_AUTHOR = "author";
+    private String REVIEW_TEXT = "content";
 
-        if(movie.has(MOVIE_RUNTIME)) {
-            mRuntime = Integer.parseInt(movie.getString(MOVIE_RUNTIME));
+    public Movie(JSONObject movieJSON) throws JSONException {
+        mPosterPath = "http://image.tmdb.org/t/p/w500/" + movieJSON.getString(MOVIE_POSTER);
+        mOverview = movieJSON.getString(MOVIE_OVERVIEW);
+        mMovieTitle = movieJSON.getString(MOVIE_TITLE);
+        mReleaseDate = movieJSON.getString(MOVIE_RELEASE_DATE);
+        mRating = movieJSON.getString(MOVIE_RATING);
+        mMovieID = Integer.parseInt(movieJSON.getString(MOVIE_ID));
+
+        if(movieJSON.has(MOVIE_RUNTIME)) {
+            mRuntime = Integer.parseInt(movieJSON.getString(MOVIE_RUNTIME));
         }
 
+    }
+
+    public int getNumTrailers(){
+        return mTrailers.size();
+    }
+
+    public ArrayList<String> getTrailerList() {
+        return mTrailers;
+    }
+
+    public void addTrailers(JSONObject trailerJSON) throws JSONException{
+        JSONArray results = trailerJSON.getJSONArray(RESULTS);
+        int length = results.length();
+
+        for (int i = 0; i < length; i++) {
+            JSONObject trailer = results.getJSONObject(i);
+            mTrailers.add(trailer.getString(TRAILER_YOUTUBE_KEY));
+        }
+    }
+
+    public void addReviews(JSONObject reviewsJSON) throws JSONException{
+        JSONArray results = reviewsJSON.getJSONArray(RESULTS);
+        int length = results.length();
+
+        for (int i = 0; i < length; i++) {
+            JSONObject result = results.getJSONObject(i);
+            mReviews.add(new Review(result.getString(REVIEW_AUTHOR), result.getString(REVIEW_TEXT)));
+        }
     }
 
     public String getPosterPath(){
@@ -117,4 +155,14 @@ public class Movie implements Parcelable {
             return new Movie[size];
         }
     };
+
+    public class Review {
+        private String reviewerName;
+        private String reviewText;
+
+        public Review(String name, String text){
+            this.reviewerName = name;
+            this.reviewText = text;
+        }
+    }
 }

@@ -11,7 +11,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +30,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -39,8 +44,13 @@ public class DetailActivityFragment extends Fragment {
     TextView mRatingTextView;
     TextView mOverviewTextView;
     ImageView mPosterImageView;
+    ListView mTrailerListView;
     private static final String LOG_TAG = DetailActivityFragment.class.getSimpleName();
     private int mMovieID;
+
+    ArrayAdapter mTrailerListAdapter;
+
+    Movie mMovie;
 
     public DetailActivityFragment() {
 
@@ -74,7 +84,7 @@ public class DetailActivityFragment extends Fragment {
         Intent intent = getActivity().getIntent();
 
         Bundle bundle = getActivity().getIntent().getExtras();
-        Movie movie  = bundle.getParcelable("Movie_Selected");
+        mMovie  = bundle.getParcelable("Movie_Selected");
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
@@ -84,25 +94,48 @@ public class DetailActivityFragment extends Fragment {
         mOverviewTextView = (TextView) rootView.findViewById(R.id.movieOverviewTextView);
         mMovieTitleTextView = (TextView) rootView.findViewById(R.id.movieTitleTextView);
         mPosterImageView = (ImageView) rootView.findViewById(R.id.detailMoviePosterImageView);
+        mTrailerListView = (ListView) rootView.findViewById(R.id.trailersListView);
 
-        String releaseDate = movie.getReleaseDate();
+        mTrailerListAdapter =
+                new ArrayAdapter<String>(
+                        getActivity(), // The current context (this activity)
+                        R.layout.trailer_list_item, // The name of the layout ID.
+                        R.id.trailerNumberTextView, // The ID of the textview to populate.
+                        new ArrayList<String>());
+
+        mTrailerListView.setAdapter(mTrailerListAdapter);
+
+
+        String releaseDate = mMovie.getReleaseDate();
         String releaseYear = releaseDate.substring(0,4);
-        mRuntimeTextView.setText(String.valueOf(movie.getRuntime()) + " minutes");
-        mRatingTextView.setText(movie.getRating() + "/10");
+        mRuntimeTextView.setText(String.valueOf(mMovie.getRuntime()) + " minutes");
+        mRatingTextView.setText(mMovie.getRating() + "/10");
         mReleaseDateTextView.setText(releaseYear);
-        mOverviewTextView.setText(movie.getOverview());
-        mMovieTitleTextView.setText(movie.getTitle());
+        mOverviewTextView.setText(mMovie.getOverview());
+        mMovieTitleTextView.setText(mMovie.getTitle());
 
         final String MOVIE_BASE_URL = " http://image.tmdb.org/t/p/";
         final String SIZE = "w185";
         final String POSTER_PATH = "poster_path";
-        final String VALUE = movie.getPosterPath();
+        final String VALUE = mMovie.getPosterPath();
         Picasso.with(getActivity()).setLoggingEnabled(true);
-        Picasso.with(getActivity()).load(movie.getPosterPath()).error(R.drawable.ic_info_black_24dp).into(mPosterImageView);
+        Picasso.with(getActivity()).load(mMovie.getPosterPath()).error(R.drawable.ic_info_black_24dp).into(mPosterImageView);
 
-        mMovieID = movie.getMovieID();
+        mMovieID = mMovie.getMovieID();
         FetchMovieTask movieTask = new FetchMovieTask();
         movieTask.execute();
+
+        mTrailerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ArrayList<String> youtubeKeysArray = mMovie.getTrailerList();
+                String keyID = youtubeKeysArray.get(position);
+
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + keyID)));
+
+            }
+        });
 
         return rootView;
     }
@@ -111,9 +144,11 @@ public class DetailActivityFragment extends Fragment {
 
         private final String LOG_TAG = FetchMovieTask.class.getSimpleName();
 
-        private Movie getMovieDataFromJSONString(String movieJSONString)
+        private Movie getMovieDataFromJSONString(String movieJSONString, String trailerDetailJSONString, String reviewDetailJSONString)
                 throws JSONException {
             Movie movieDetail = new Movie(new JSONObject(movieJSONString));
+            movieDetail.addTrailers(new JSONObject(trailerDetailJSONString));
+            movieDetail.addReviews(new JSONObject(reviewDetailJSONString));
             return movieDetail;
         }
 
@@ -168,7 +203,7 @@ public class DetailActivityFragment extends Fragment {
 
 
             try {
-                return getMovieDataFromJSONString(movieDetailJSONString);
+                return getMovieDataFromJSONString(movieDetailJSONString, trailerDetailJSONString, reviewDetailJSONString);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
@@ -181,7 +216,17 @@ public class DetailActivityFragment extends Fragment {
         @Override
         protected void onPostExecute(Movie result) {
             if (result != null) {
+
+                mMovie = result;
                 mRuntimeTextView.setText(String.valueOf(result.getRuntime()) + " minutes");
+
+                mTrailerListAdapter.clear();
+                int numTrailers = result.getNumTrailers();
+
+                for (int i=0; i < numTrailers;i++){
+                    mTrailerListAdapter.add("Trailer " + (i+ 1));
+                }
+
             }
         }
     }
