@@ -1,10 +1,9 @@
 package com.example.android.popularmovies;
 
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,10 +13,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -31,12 +29,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import com.example.android.popularmovies.Movie.Review;
 
-/**
- * A placeholder fragment containing a simple view.
- */
 public class DetailActivityFragment extends Fragment {
-
 
     TextView mRuntimeTextView;
     TextView mMovieTitleTextView;
@@ -44,11 +39,11 @@ public class DetailActivityFragment extends Fragment {
     TextView mRatingTextView;
     TextView mOverviewTextView;
     ImageView mPosterImageView;
-    ListView mTrailerListView;
+    LinearLayout mTrailerLinearLayout;
+    LinearLayout mReviewsLinearLayout;
+    LayoutInflater mInflater;
     private static final String LOG_TAG = DetailActivityFragment.class.getSimpleName();
     private int mMovieID;
-
-    ArrayAdapter mTrailerListAdapter;
 
     Movie mMovie;
 
@@ -81,10 +76,12 @@ public class DetailActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Intent intent = getActivity().getIntent();
-
-        Bundle bundle = getActivity().getIntent().getExtras();
-        mMovie  = bundle.getParcelable("Movie_Selected");
+        Bundle arguments = getArguments();
+        if (arguments == null) {
+            return null;
+        } else {
+            mMovie = arguments.getParcelable("Movie_Selected");
+        }
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
@@ -94,17 +91,8 @@ public class DetailActivityFragment extends Fragment {
         mOverviewTextView = (TextView) rootView.findViewById(R.id.movieOverviewTextView);
         mMovieTitleTextView = (TextView) rootView.findViewById(R.id.movieTitleTextView);
         mPosterImageView = (ImageView) rootView.findViewById(R.id.detailMoviePosterImageView);
-        mTrailerListView = (ListView) rootView.findViewById(R.id.trailersListView);
-
-        mTrailerListAdapter =
-                new ArrayAdapter<String>(
-                        getActivity(), // The current context (this activity)
-                        R.layout.trailer_list_item, // The name of the layout ID.
-                        R.id.trailerNumberTextView, // The ID of the textview to populate.
-                        new ArrayList<String>());
-
-        mTrailerListView.setAdapter(mTrailerListAdapter);
-
+        mTrailerLinearLayout = (LinearLayout) rootView.findViewById(R.id.trailerLinearLayout);
+        mReviewsLinearLayout = (LinearLayout) rootView.findViewById(R.id.reviewsLinearLayout);
 
         String releaseDate = mMovie.getReleaseDate();
         String releaseYear = releaseDate.substring(0,4);
@@ -125,17 +113,7 @@ public class DetailActivityFragment extends Fragment {
         FetchMovieTask movieTask = new FetchMovieTask();
         movieTask.execute();
 
-        mTrailerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ArrayList<String> youtubeKeysArray = mMovie.getTrailerList();
-                String keyID = youtubeKeysArray.get(position);
-
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + keyID)));
-
-            }
-        });
+        mInflater = inflater;
 
         return rootView;
     }
@@ -220,11 +198,46 @@ public class DetailActivityFragment extends Fragment {
                 mMovie = result;
                 mRuntimeTextView.setText(String.valueOf(result.getRuntime()) + " minutes");
 
-                mTrailerListAdapter.clear();
+                final ArrayList<String> youtubeKeysArray = result.getTrailerList();
+
                 int numTrailers = result.getNumTrailers();
 
-                for (int i=0; i < numTrailers;i++){
-                    mTrailerListAdapter.add("Trailer " + (i+ 1));
+                for (int i=0; i < numTrailers;i++) {
+                    final int index = i;
+                    View v = mInflater.inflate(R.layout.trailer_list_item, null);
+
+                    // fill in any details dynamically here
+                    TextView textView = (TextView) v.findViewById(R.id.trailerNumberTextView);
+                    textView.setText("Trailer " + (i + 1));
+                    ImageView playButton = (ImageView) v.findViewById(R.id.imageViewPlay);
+                    playButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+
+                            String keyID = youtubeKeysArray.get(index);
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + keyID)));
+                        }
+                    });
+
+                    mTrailerLinearLayout.addView(v);
+                }
+
+                ArrayList<Review> reviews = result.getReviews();
+                int numReviews = result.getNumReviews();
+
+                for (int i=0; i < numReviews;i++){
+                    Review review = reviews.get(i);
+
+                    final int index = i;
+                    View v = mInflater.inflate(R.layout.reviews_list_item, null);
+
+                    // fill in any details dynamically here
+                    TextView textViewAuthor = (TextView) v.findViewById(R.id.textViewAuthor);
+                    textViewAuthor.setText(review.getReviewerName());
+                    TextView textViewReview = (TextView) v.findViewById(R.id.textViewReview);
+                    textViewReview.setText(review.getReviewText());
+
+                    mReviewsLinearLayout.addView(v);
                 }
 
             }

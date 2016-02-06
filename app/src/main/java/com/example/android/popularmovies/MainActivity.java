@@ -10,8 +10,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
-    private static final String LOG_TAG = MainActivity.class.getSimpleName();;
+public class MainActivity extends AppCompatActivity implements PostersFragment.MovieSelectedCallback{
+
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
+    private static final String DETAILFRAGMENT_TAG = "DTAG";
+    private boolean mTwoPane;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,10 +24,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(myToolbar);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PostersFragment())
-                    .commit();
+
+        if (findViewById(R.id.movie_detail_container) != null) {
+            // The detail container view will be present only in the large-screen layouts
+            // (res/layout-sw600dp). If this view is present, then the activity should be
+            // in two-pane mode.
+            mTwoPane = true;
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.movie_detail_container, new DetailActivityFragment(), DETAILFRAGMENT_TAG)
+                        .commit();
+                }
+            } else {
+            mTwoPane = false;
         }
     }
 
@@ -49,4 +66,24 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onItemSelected(Movie movie) {
+        if(mTwoPane){
+            DetailActivityFragment fragment = new DetailActivityFragment();
+            Bundle args = new Bundle();
+            args.putParcelable("Movie_Selected", movie);
+            fragment.setArguments(args);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.movie_detail_container, fragment, DETAILFRAGMENT_TAG)
+                .commit();
+
+        } else {
+
+            Intent intent = new Intent(this, DetailActivity.class);
+            intent.putExtra("Movie_Selected",movie);
+            startActivity(intent);
+
+        }
+
+    }
 }

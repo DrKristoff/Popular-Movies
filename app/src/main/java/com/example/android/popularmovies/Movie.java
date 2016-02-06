@@ -2,6 +2,7 @@ package com.example.android.popularmovies;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -156,13 +157,31 @@ public class Movie implements Parcelable {
         }
     };
 
+    public int getNumReviews() {
+        return mReviews.size();
+    }
+
+    public ArrayList<Review> getReviews() {
+        return mReviews;
+    }
+
     public class Review {
         private String reviewerName;
         private String reviewText;
 
         public Review(String name, String text){
+            Log.d("RCD","Author: " + name );
+            Log.d("RCD","content: " + text );
             this.reviewerName = name;
             this.reviewText = text;
+        }
+
+        public String getReviewerName() {
+            return reviewerName;
+        }
+
+        public String getReviewText() {
+            return reviewText;
         }
     }
 }

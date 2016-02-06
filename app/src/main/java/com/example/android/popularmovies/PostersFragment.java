@@ -57,16 +57,6 @@ public class PostersFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        //mGridView.setAdapter(new ImageAdapter(get));
-
-        //mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-        //public void onItemClick(AdapterView<?> parent, View v,
-        //                    int position, long id) {
-        //Toast.makeText(getActivity(), "" + position,
-        //        Toast.LENGTH_SHORT).show();
-        //}
-        //});
-        // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_posters, container, false);
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
 
@@ -77,13 +67,8 @@ public class PostersFragment extends Fragment {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //Toast.makeText(getActivity(), mForecastAdapter.getItem(position), Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
-                //int movieID = mMovieAdapter.getItem(position).getMovieID();
-                //intent.putExtra(Intent.EXTRA_TEXT, String.valueOf(movieID));
-                intent.putExtra("Movie_Selected",mMovieAdapter.getItem(position));
-                startActivity(intent);
 
+                ((MovieSelectedCallback) getActivity()).onItemSelected(mMovieAdapter.getItem(position));
 
             }
         });
@@ -241,6 +226,11 @@ public class PostersFragment extends Fragment {
               // New data is back from the server.  Hooray!
             }
         }
+    }
+
+    public interface MovieSelectedCallback {
+
+        public void onItemSelected(Movie movie);
     }
 
 }
