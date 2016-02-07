@@ -1,3 +1,5 @@
-This project was created for Project 1 of the Udacity Android Nanodegree.  
+This project was created for Project 1 and Project 2 of the Udacity Android Nanodegree.  
 
-The purpose of this app at this stage was to create an app that displays a grid of movie posters.  The movie posters are populated by using The Movie DB Api.  The user can sort the movies by rating and by popularity by going into the settings menu.  When a user selects a movie, they are taken to a detail view which gives them some additional information on that particular movie.  
+The purpose of this app was to create an app that displays a grid of movie posters.  The movie posters are populated by using The Movie DB Api.  The user can sort the movies by rating, popularity, or favorites.  When a user selects a movie, they are shown a detail view which gives them some additional information on that particular movie, including plot, trailers, reviews, rating, and runtime.  The user can also mark different movies as favorites.  An arrayList of Movie objects is converted to a JSON string using the Gson library and stored in Shared preferences.  When a trailer is selected, it launches an intent that will play the trailer in the YouTube app.  
+
+The app is both phone and tablet friendly.  If using a phone, selecting a movie from the posters list will launch a new activity and fragment.  If using a tablet, poster and movie detail information is displayed using the Master-Detail pattern, when both fragments are shown on the screen at the same time.  
