@@ -19,7 +19,7 @@ android {
     }
 
     buildTypes.each {
-        it.buildConfigField 'String', 'MOVIE_DATABASE_API_KEY', '"f58dc47fa022f130910a13bdf587d710"'
+        it.buildConfigField 'String', 'MOVIE_DATABASE_API_KEY', '"API_KEY_HERE"'
     }
 }
 
@@ -30,4 +30,5 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
     compile 'com.android.support:support-v4:23.1.1'
     compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.google.code.gson:gson:2.5'
 }

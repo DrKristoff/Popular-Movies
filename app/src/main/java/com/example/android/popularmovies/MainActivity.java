@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -26,13 +28,8 @@ public class MainActivity extends AppCompatActivity implements PostersFragment.M
         //setSupportActionBar(myToolbar);
 
         if (findViewById(R.id.movie_detail_container) != null) {
-            // The detail container view will be present only in the large-screen layouts
-            // (res/layout-sw600dp). If this view is present, then the activity should be
-            // in two-pane mode.
             mTwoPane = true;
-            // In two-pane mode, show the detail view in this activity by
-            // adding or replacing the detail fragment using a
-            // fragment transaction.
+
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.movie_detail_container, new DetailActivityFragment(), DETAILFRAGMENT_TAG)
@@ -57,9 +54,30 @@ public class MainActivity extends AppCompatActivity implements PostersFragment.M
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent(this,SettingsActivity.class);
-            startActivity(intent);
+        if (id == R.id.action_popularity_sort) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            prefs.edit().putString(getString(R.string.pref_sort_key),
+                    getString(R.string.pref_sort_popularity))
+                    .apply();
+            reloadPosters();
+
+            return true;
+        }
+        if (id == R.id.action_rating_sort) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            prefs.edit().putString(getString(R.string.pref_sort_key),
+                    getString(R.string.pref_sort_rating))
+                    .apply();
+            reloadPosters();
+            return true;
+        }
+        if (id == R.id.action_show_favorites) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            prefs.edit().putString(getString(R.string.pref_sort_key),
+                    getString(R.string.pref_sort_favorites))
+                    .apply();
+            reloadPosters();
+
             return true;
         }
 
@@ -84,6 +102,17 @@ public class MainActivity extends AppCompatActivity implements PostersFragment.M
             startActivity(intent);
 
         }
+
+    }
+
+    private void reloadPosters(){
+        Fragment fragment = getSupportFragmentManager()
+                .findFragmentById(R.id.postersContainer);
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.detach(fragment);
+        transaction.attach(fragment);
+        transaction.commit();
 
     }
 }

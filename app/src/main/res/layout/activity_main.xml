@@ -11,6 +11,7 @@
     <fragment
         android:id="@+id/postersContainer"
         android:name="com.example.android.popularmovies.PostersFragment"
+        android:tag="@string/poster_fragment_tag"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="2"

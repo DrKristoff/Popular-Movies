@@ -43,6 +43,8 @@ public class PostersFragment extends Fragment {
 
     GridView mGridView;
     private MovieAdapter mMovieAdapter;
+    private boolean getFavorites;
+    public DetailActivityFragment fragment;
 
     public PostersFragment() {
         // Required empty public constructor
@@ -69,6 +71,7 @@ public class PostersFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 ((MovieSelectedCallback) getActivity()).onItemSelected(mMovieAdapter.getItem(position));
+                Log.d("RCD",String.valueOf("position: " + position));
 
             }
         });
@@ -95,8 +98,8 @@ public class PostersFragment extends Fragment {
     private void updateMovies(){
         FetchMoviesTask moviesTask = new FetchMoviesTask();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        //String loc = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
         moviesTask.execute();
+
     }
 
     public class FetchMoviesTask extends AsyncTask<Void, Void, ArrayList<Movie>> {
@@ -137,18 +140,21 @@ public class PostersFragment extends Fragment {
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
             String sortBy = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_popularity));
+
+            if(sortBy.equals(getString(R.string.pref_sort_favorites))){
+                return FavoritesHelper.loadFavorites(getActivity());
+            }
+
             sortBy = sortBy + ".desc"; //vote_average.desc
 
             try {
 
-                //final String FORECAST_BASE_URL = "http://api.themoviedb.org/3/movie/popular";
-                final String FORECAST_BASE_URL = "http://api.themoviedb.org/3/discover/movie";
-                //http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=
+                final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie";
                 final String APPID_PARAM = "api_key";
                 final String SORT_BY_PARAM = "sort_by";
                     final String MIN_VOTES_PARAM = "vote_count.gte";
 
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
+                Uri builtUri = Uri.parse(MOVIE_BASE_URL).buildUpon()
                         .appendQueryParameter(SORT_BY_PARAM, sortBy)
                         .appendQueryParameter(MIN_VOTES_PARAM, "200")
                         .appendQueryParameter(APPID_PARAM, BuildConfig.MOVIE_DATABASE_API_KEY)

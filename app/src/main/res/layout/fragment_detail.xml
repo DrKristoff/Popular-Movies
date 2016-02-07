@@ -63,6 +63,20 @@
                     android:text="Movie Rating"
                     android:id="@+id/movieRatingTextView" />
 
+                <ImageView
+                    android:layout_marginTop="20dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/mark_as_favorite"
+                    android:id="@+id/imageViewFavorite" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="Mark Favorite"
+                    android:id="@+id/textViewMarkFavorite" />
+
             </LinearLayout>
         </LinearLayout>
 
