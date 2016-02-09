@@ -3,6 +3,7 @@ package com.example.android.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -18,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -156,6 +158,12 @@ public class DetailActivityFragment extends Fragment {
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
+
+            if(!isNetworkConnected()){
+                return null;
+            }
+
+
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
@@ -259,6 +267,12 @@ public class DetailActivityFragment extends Fragment {
 
             }
         }
+    }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
     }
 
     public String getRESTResponseFromURI(Uri builtUri){

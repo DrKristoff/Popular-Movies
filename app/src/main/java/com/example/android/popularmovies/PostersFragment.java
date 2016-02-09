@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -43,8 +44,9 @@ public class PostersFragment extends Fragment {
 
     GridView mGridView;
     private MovieAdapter mMovieAdapter;
-    private boolean getFavorites;
-    public DetailActivityFragment fragment;
+    private ArrayList<Movie> movieArrayList = new ArrayList<Movie>();
+
+    private String MOVIE_KEY = "movie_list";
 
     public PostersFragment() {
         // Required empty public constructor
@@ -53,6 +55,10 @@ public class PostersFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null)
+        {
+            movieArrayList = (ArrayList<Movie>)savedInstanceState.get(MOVIE_KEY);
+        }
     }
 
     @Override
@@ -62,7 +68,7 @@ public class PostersFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_posters, container, false);
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
 
-        mMovieAdapter = new MovieAdapter(getActivity(), new ArrayList<Movie>());
+        mMovieAdapter = new MovieAdapter(getActivity(), movieArrayList);
         mGridView.setAdapter(mMovieAdapter);
 
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
@@ -85,6 +91,13 @@ public class PostersFragment extends Fragment {
         updateMovies();  //update posters after settings preference changed
         super.onResume();
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(MOVIE_KEY, (ArrayList<? extends Parcelable>) movieArrayList);
+    }
+
 
 
     @Override
